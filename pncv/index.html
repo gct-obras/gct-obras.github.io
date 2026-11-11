@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f3864">
+<title>PNCV · Lançamentos de campo</title>
+<style>
+:root{
+  --azul:#1f3864; --azul2:#2f5597; --fundo:#f3f5f9; --card:#fff; --texto:#1b2430; --sub:#5b6676; --linha:#dfe4ec;
+  --ok:#1e7b3a; --okbg:#e3f3e7; --prev:#1d5fb4; --prevbg:#ddebf7; --venc:#b42318; --vencbg:#fde4e1;
+  --sem:#8a5a00; --sembg:#fff1cc; --na:#5b6676; --nabg:#eceff3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fundo);color:var(--texto);font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select{font:inherit}
+.topo{position:sticky;top:0;z-index:5;background:var(--azul);color:#fff;padding:12px 16px 10px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.topo h1{margin:0;font-size:17px;font-weight:650;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.topo small{display:block;opacity:.8;font-size:12px;margin-top:2px}
+.topo .sair{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:4px 10px;font-size:13px}
+.busca{margin-top:10px;position:relative}
+.busca input{width:100%;padding:11px 12px 11px 38px;border-radius:10px;border:0;font-size:16px}
+.busca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5}
+.filtros{display:flex;gap:6px;overflow-x:auto;padding:10px 16px 2px;-webkit-overflow-scrolling:touch}
+.filtros button{flex:0 0 auto;border:1px solid var(--linha);background:#fff;border-radius:999px;padding:6px 12px;font-size:14px;color:var(--sub)}
+.filtros button.on{background:var(--azul2);border-color:var(--azul2);color:#fff}
+main{padding:8px 16px 90px;max-width:760px;margin:0 auto}
+.ponto{background:var(--card);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid var(--linha);cursor:pointer}
+.ponto .t{font-weight:650}
+.ponto .s{color:var(--sub);font-size:13px;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:12px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.c-ok{background:var(--okbg);color:var(--ok)} .c-prev{background:var(--prevbg);color:var(--prev)}
+.c-venc{background:var(--vencbg);color:var(--venc)} .c-sem{background:var(--sembg);color:var(--sem)} .c-na{background:var(--nabg);color:var(--na)}
+.barra{height:5px;background:var(--linha);border-radius:3px;margin-top:9px;overflow:hidden}.barra i{display:block;height:100%;background:var(--ok)}
+.vazio{text-align:center;color:var(--sub);padding:40px 10px}
+.entrada{max-width:420px;margin:0 auto;padding:28px 18px}
+.entrada h2{margin:0 0 4px;font-size:22px}.entrada p{color:var(--sub);margin:0 0 18px}
+.contratos{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px}
+.contratos button{padding:16px 8px;border-radius:12px;border:2px solid var(--linha);background:#fff;font-weight:650;font-size:16px}
+.contratos button.on{border-color:var(--azul2);background:#eef3fb;color:var(--azul)}
+label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
+.campo{width:100%;padding:12px;border:1px solid #c9d1dd;border-radius:10px;font-size:16px;background:#fff}
+.btn{width:100%;padding:13px;border:0;border-radius:10px;background:var(--azul2);color:#fff;font-weight:650;font-size:16px;margin-top:14px}
+.btn:disabled{opacity:.5}.btn.sec{background:#fff;color:var(--azul2);border:1px solid var(--azul2)}
+.erro{color:var(--venc);font-size:14px;margin-top:8px;min-height:18px}
+.det-cab{background:#fff;border-bottom:1px solid var(--linha);padding:12px 16px}
+.voltar{border:0;background:none;color:var(--azul2);font-weight:600;padding:0;margin-bottom:6px}
+.etapa{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:11px 12px;margin:8px 0;cursor:pointer}
+.etapa .n{font-weight:600}.etapa .g{font-size:12px;color:var(--sub)}
+.etapa .fx{font-size:12px;color:var(--sub);margin-top:3px}
+.grupo{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--sub);margin:16px 2px 4px}
+.aviso{background:#fff8e1;border:1px solid #f0d27a;color:#6b5000;border-radius:10px;padding:9px 12px;font-size:13px;margin:10px 0}
+.fundo-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.modal h3{margin:0 0 2px;font-size:18px}.modal .s{color:var(--sub);font-size:13px}
+.opcoes{display:grid;gap:8px;margin-top:12px}
+.opcoes label.op{display:flex;align-items:center;gap:10px;border:1px solid var(--linha);border-radius:10px;padding:11px;margin:0;color:var(--texto);font-size:15px}
+.opcoes input[type=radio]{width:20px;height:20px}
+.faixas{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.faixas label{display:flex;gap:6px;align-items:center;border:1px solid var(--linha);border-radius:8px;padding:6px 10px;margin:0;color:var(--texto)}
+.ok-msg{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+.pend{font-size:12px;color:var(--prev);margin-top:3px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* Página de lançamentos de campo PNCV — GCT.
+   Acesso direto por contrato (sem código). Os arquivos de dados seguem no formato criptografado, com o código embutido aqui.
+   Os lançamentos vão para a caixa de entrada (Google Apps Script); a rotina diária passa para a planilha. */
+const ENVIO_URL = 'https://script.google.com/macros/s/AKfycbwTgVIDKlACRppPXaro300xKq8Rytfo6b3aySNiqVM97lKclB3zT9yj2Ha2R1n6uWRvNw/exec';
+const CODIGOS = {BA:'ba26',CE:'ce26',MG:'mg26',PE:'pe26'}; // sem tela de código (pedido do Roberto, 11/11); o envio ainda valida o contrato
+const CONTRATOS = [['CE','PNCV - CE'],['MG','PNCV - MG'],['PE','PNCV - PE']]; // BA retirado do link em 11/11 (Roberto)
+const app = document.getElementById('app');
+const S = { uf:null, codigo:null, dados:null, filtro:'pend', busca:'', ponto:null };
+const ls = { get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoje = (()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`})();
+const br = iso => iso ? iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(2,4) : '';
+const b64 = s => Uint8Array.from(atob(s), c=>c.charCodeAt(0));
+const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+
+async function abrir(uf, codigo){
+  const r = await fetch(`dados/${uf.toLowerCase()}.json?t=${Date.now()}`, {cache:'no-store'});
+  if(!r.ok) throw new Error('Dados do contrato não encontrados.');
+  const o = await r.json();
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(codigo.trim().toLowerCase()), 'PBKDF2', false, ['deriveKey']);
+  const chave = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(o.sal), iterations:o.it, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  let txt;
+  try{ txt = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(o.iv)}, chave, b64(o.dados))); }
+  catch(e){ throw new Error('Código de acesso incorreto.'); }
+  return JSON.parse(txt);
+}
+
+/* ---------- situação de cada etapa ---------- */
+function estado(v){ // v = [tipo, data]
+  const [k,d] = v||['',''];
+  if(k==='r') return {c:'ok', t:'Feito '+br(d), o:3};
+  if(k==='ok') return {c:'ok', t:'OK', o:3};
+  if(k==='na') return {c:'na', t:'Não se aplica', o:4};
+  if(k==='p') return d < hoje ? {c:'venc', t:'Vencida '+br(d), o:0} : {c:'prev', t:'Previsto '+br(d), o:2};
+  if(k==='v') return {c:'venc', t:'Vencida '+(d||''), o:0};
+  if(k==='x') return {c:'na', t:d, o:4};
+  return {c:'sem', t:'Sem previsão', o:1};
+}
+function resumoPonto(p){
+  // por etapa: vale a pior situação entre as faixas do ponto
+  let feitas=0,venc=0,sem=0,prev=0; const total=S.dados.etapas.filter(x=>x.tipo!=='serie').length;
+  for(const e of S.dados.etapas.filter(x=>x.tipo!=='serie')){
+    const ss=p.faixas.map(f=>estado(f.v[e.col]).c);
+    if(ss.includes('venc')) venc++; else if(ss.includes('sem')) sem++; else if(ss.includes('prev')) prev++; else feitas++;
+  }
+  return {feitas,total,venc,sem,prev};
+}
+function pendentes(){ return ls.get('pncv_env_'+S.uf, []).filter(x=>x.dia >= (S.dados.gerado_em||'')); }
+
+/* ---------- telas ---------- */
+function telaEntrada(msg){
+  app.innerHTML = `<div class="topo"><h1>PNCV · Lançamentos de campo</h1><small>GCT – Gerenciamento e Controle de Trânsito</small></div>
+  <div class="entrada"><h2>Contratos</h2><p>Toque no contrato para ver os pontos.</p>
+  <div class="contratos">${CONTRATOS.map(([u,n])=>`<button data-uf="${u}" class="${S.uf===u?'on':''}">${n}</button>`).join('')}</div>
+  <div class="erro" id="err">${esc(msg||'')}</div></div>`;
+  app.querySelectorAll('.contratos button').forEach(b=>b.onclick=async()=>{
+    const uf=b.dataset.uf, err=document.getElementById('err');
+    app.querySelectorAll('.contratos button').forEach(x=>x.disabled=true);
+    const txt=b.textContent; b.textContent='Abrindo…';
+    try{ S.uf=uf; S.codigo=CODIGOS[uf]; S.dados = await abrir(uf, S.codigo); telaLista(); }
+    catch(e){ app.querySelectorAll('.contratos button').forEach(x=>x.disabled=false); b.textContent=txt; err.textContent=e.message; }
+  });
+}
+
+function telaLista(){
+  S.ponto=null;
+  const d=S.dados;
+  app.innerHTML = `<div class="topo"><h1>${esc(d.titulo)} <button class="sair" id="sair">Contratos</button></h1>
+    <small>Planilha atualizada em ${br(d.gerado_em)} · ${d.pontos.length} pontos</small>
+    <div class="busca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Pesquisar: BR, km, município, código ou ET" value="${esc(S.busca)}"></div></div>
+    <div class="filtros">${[['pend','Pendentes'],['venc','Vencidas'],['sem','Sem previsão'],['todos','Todos']].map(([k,t])=>`<button data-f="${k}" class="${S.filtro===k?'on':''}">${t}</button>`).join('')}</div>
+    <main id="lista"></main>`;
+  document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
+  const q=document.getElementById('q'); q.oninput=()=>{S.busca=q.value;desenharLista();};
+  app.querySelectorAll('.filtros button').forEach(b=>b.onclick=()=>{S.filtro=b.dataset.f;app.querySelectorAll('.filtros button').forEach(x=>x.classList.toggle('on',x===b));desenharLista();});
+  desenharLista();
+}
+
+function desenharLista(){
+  const termos = norm(S.busca).split(/\s+/).filter(Boolean);
+  const pend = pendentes();
+  let itens = S.dados.pontos.map(p=>({p, r:resumoPonto(p)})).filter(({p,r})=>{
+    if(termos.length){
+      const alvo = norm(`br-${p.br} br ${p.br} km ${p.km} ${p.km.replace(',','.')} ${p.mun} ${p.cod} ${p.et} ${p.tipo}`);
+      if(!termos.every(t=>alvo.includes(t))) return false;
+      return true;  // na pesquisa mostra o ponto mesmo se estiver completo
+    }
+    if(S.filtro==='pend') return r.feitas<r.total;
+    if(S.filtro==='venc') return r.venc>0;
+    if(S.filtro==='sem') return r.sem>0;
+    return true;
+  });
+  itens.sort((a,b)=> (b.r.venc>0)-(a.r.venc>0) || (b.r.sem>0)-(a.r.sem>0) || (a.r.feitas/a.r.total)-(b.r.feitas/b.r.total) || a.p.br.localeCompare(b.p.br) || parseFloat(a.p.km.replace(',','.'))-parseFloat(b.p.km.replace(',','.')));
+  const el=document.getElementById('lista');
+  if(!itens.length){ el.innerHTML=`<div class="vazio">${termos.length?'Nenhum ponto encontrado para essa pesquisa.':'Nenhum ponto neste filtro.'}</div>`; return; }
+  el.innerHTML = itens.slice(0,300).map(({p,r})=>{
+    const np = pend.filter(x=>x.ponto===p.id).length;
+    return `<div class="ponto" data-id="${esc(p.id)}"><div class="t">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.mun)}</div>
+    <div class="s">${esc(p.cod||'sem código')} · ${esc(p.et||'')} · ${esc(p.tipo)} · ${p.faixas.length} faixa${p.faixas.length>1?'s':''}${p.sit?' · '+esc(p.sit):''}</div>
+    <div class="chips">${r.venc?`<span class="chip c-venc">${r.venc} vencida${r.venc>1?'s':''}</span>`:''}${r.sem?`<span class="chip c-sem">${r.sem} sem previsão</span>`:''}${r.prev?`<span class="chip c-prev">${r.prev} prevista${r.prev>1?'s':''}</span>`:''}<span class="chip c-ok">${r.feitas}/${r.total} concluídas</span></div>
+    ${np?`<div class="pend">${np} lançamento${np>1?'s':''} enviado${np>1?'s':''} — entra na planilha na próxima atualização</div>`:''}
+    <div class="barra"><i style="width:${Math.round(100*r.feitas/r.total)}%"></i></div></div>`;
+  }).join('');
+  el.querySelectorAll('.ponto').forEach(c=>c.onclick=()=>telaPonto(c.dataset.id));
+}
+
+function telaPonto(id){
+  const p = S.dados.pontos.find(x=>x.id===id); S.ponto=p;
+  const pend = pendentes().filter(x=>x.ponto===id);
+  let grupo='', html='';
+  for(const e of S.dados.etapas){
+    if(e.grupo!==grupo){ grupo=e.grupo; html+=`<div class="grupo">${esc(grupo)}</div>`; }
+    const st = p.faixas.map(f=>({f:f.f, s:e.tipo==='serie'?((f.v[e.col]||[])[1]?{c:'ok',t:f.v[e.col][1]}:{c:'na',t:'Não informado'}):estado(f.v[e.col])}));
+    const iguais = st.every(x=>x.s.t===st[0].s.t);
+    const pe = pend.filter(x=>x.etapa===e.col).slice(-1)[0];
+    html += `<div class="etapa" data-col="${e.col}"><div><div class="n">${esc(e.nome)}</div>
+      ${iguais?'':`<div class="fx">${st.map(x=>`${esc(x.f)}: ${esc(x.s.t)}`).join(' · ')}</div>`}
+      ${pe?`<div class="pend">Enviado: ${esc(pe.resumo)}</div>`:''}</div>
+      ${iguais?`<span class="chip c-${st[0].s.c}">${esc(st[0].s.t)}</span>`:`<span class="chip c-na">Varia</span>`}</div>`;
+  }
+  app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Contratos</button></h1><small>Toque na etapa para lançar</small></div>
+  <div class="det-cab"><button class="voltar" id="volta">‹ Voltar à lista</button>
+  <div class="t" style="font-weight:650">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.mun)}</div>
+  <div class="s" style="color:var(--sub);font-size:13px">${esc(p.cod||'sem código')} · ${esc(p.et)} · ${esc(p.tipo)} · faixas ${p.faixas.map(f=>esc(f.f)).join(', ')}</div></div>
+  <main>${p.ni?'':'<div class="aviso">Este ponto ainda não tem NI. Lance apenas previsões.</div>'}${html}</main>`;
+  document.getElementById('volta').onclick=telaLista;
+  document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
+  app.querySelectorAll('.etapa').forEach(x=>x.onclick=()=>modalLanc(x.dataset.col));
+  window.scrollTo(0,0);
+}
+
+function modalLanc(col){
+  const p=S.ponto, e=S.dados.etapas.find(x=>x.col===col);
+  const placa = e.tipo==='placa';
+  const nome = ls.get('pncv_nome','');
+  if(e.tipo==='serie') return modalSerie(p,e,nome);
+  const fundo=document.createElement('div'); fundo.className='fundo-modal';
+  fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Lançar ${esc(e.nome)}">
+   <h3>${esc(e.nome)}</h3><div class="s">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.cod||p.et)}</div>
+   <div class="opcoes">
+     <label class="op"><input type="radio" name="tp" value="realizado" ${p.ni?'':'disabled'}> ${placa?'Instalada (OK)':'Realizado'}</label>
+     <label class="op"><input type="radio" name="tp" value="previsto" checked> Previsto para</label>
+     ${e.aceita_traco?'<label class="op"><input type="radio" name="tp" value="na"> Não se aplica neste ponto ( - )</label>':''}
+   </div>
+   <div id="bxData"><label for="dt">Data</label><input id="dt" type="date" class="campo"></div>
+   ${p.faixas.length>1?`<label>Faixas</label><div class="faixas">${p.faixas.map((f,i)=>`<label><input type="checkbox" value="${i}" checked> ${esc(f.f)}</label>`).join('')}</div>`:''}
+   <label for="nm">Seu nome</label><input id="nm" class="campo" value="${esc(nome)}" placeholder="Nome de quem está lançando">
+   <div class="erro" id="merr"></div>
+   <button class="btn" id="env">Enviar</button><button class="btn sec" id="canc">Cancelar</button></div>`;
+  document.body.appendChild(fundo);
+  const $=s=>fundo.querySelector(s);
+  const ajusta=()=>{const tp=fundo.querySelector('input[name=tp]:checked').value; const dt=$('#dt');
+    $('#bxData').style.display = (tp==='na' || (tp==='realizado' && placa)) ? 'none':'block';
+    if(tp==='realizado'){dt.max=hoje;dt.min='';if(!dt.value||dt.value>hoje)dt.value=hoje;}
+    if(tp==='previsto'){const a=new Date();a.setDate(a.getDate()+1);const amanha=a.toISOString().slice(0,10);dt.min=amanha;dt.max='';if(!dt.value||dt.value<=hoje)dt.value='';}};
+  fundo.querySelectorAll('input[name=tp]').forEach(r=>r.onchange=ajusta); ajusta();
+  $('#canc').onclick=()=>fundo.remove();
+  fundo.onclick=ev=>{if(ev.target===fundo)fundo.remove();};
+  $('#env').onclick=async()=>{
+    const tp=fundo.querySelector('input[name=tp]:checked').value, dt=$('#dt').value, nm=$('#nm').value.trim(), err=$('#merr');
+    const sel = p.faixas.length>1 ? [...fundo.querySelectorAll('.faixas input:checked')].map(x=>p.faixas[+x.value]) : p.faixas;
+    if(!sel.length){err.textContent='Marque pelo menos uma faixa.';return}
+    if(!nm){err.textContent='Informe seu nome.';return}
+    const precisaData = !(tp==='na' || (tp==='realizado'&&placa));
+    if(precisaData && !dt){err.textContent='Informe a data.';return}
+    if(tp==='realizado' && precisaData && dt>hoje){err.textContent='Data de realizado não pode ser futura. Use "Previsto para".';return}
+    if(tp==='previsto' && dt<=hoje){err.textContent='Previsão precisa ser de amanhã em diante.';return}
+    ls.set('pncv_nome', nm);
+    const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2));
+    const payload = {id, contrato:S.uf, codigo:S.codigo, ponto:p.id, cod:p.cod, et:p.et,
+      linhas:sel.map(f=>f.k), faixas:sel.map(f=>f.f), etapa:e.col, etapa_titulo:e.titulo, etapa_nome:e.nome,
+      tipo:tp, data: precisaData?dt:'', nome:nm, enviado_em:new Date().toISOString()};
+    const bt=$('#env'); bt.disabled=true; bt.textContent='Enviando…';
+    try{
+      await fetch(ENVIO_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
+      const resumo = tp==='na'?'não se aplica':(tp==='realizado'?(placa?'OK':'realizado '+br(dt)):'previsto '+br(dt));
+      const lista = ls.get('pncv_env_'+S.uf, []); lista.push({ponto:p.id, etapa:e.col, resumo:resumo+' ('+sel.map(f=>f.f).join(', ')+')', dia:hoje}); ls.set('pncv_env_'+S.uf, lista.slice(-300));
+      fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">${esc(e.nome)}: ${esc(resumo)}.<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
+      fundo.querySelector('#fech').onclick=()=>{fundo.remove();telaPonto(p.id);};
+    }catch(x){ bt.disabled=false; bt.textContent='Enviar'; err.textContent='Sem conexão. Tente de novo quando tiver sinal.'; }
+  };
+}
+
+function modalSerie(p,e,nome){
+  const fundo=document.createElement('div'); fundo.className='fundo-modal';
+  fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Nº de série">
+   <h3>Nº de série</h3><div class="s">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.cod||p.et)}</div>
+   <label for="sr">Número de série do equipamento</label><input id="sr" class="campo" autocomplete="off" autocapitalize="characters">
+   ${p.faixas.length>1?`<label>Faixas</label><div class="faixas">${p.faixas.map((f,i)=>`<label><input type="checkbox" value="${i}" checked> ${esc(f.f)}</label>`).join('')}</div>`:''}
+   <label for="nm">Seu nome</label><input id="nm" class="campo" value="${esc(nome)}" placeholder="Nome de quem está lançando">
+   <div class="erro" id="merr"></div>
+   <button class="btn" id="env">Enviar</button><button class="btn sec" id="canc">Cancelar</button></div>`;
+  document.body.appendChild(fundo);
+  const $=s=>fundo.querySelector(s);
+  $('#canc').onclick=()=>fundo.remove();
+  fundo.onclick=ev=>{if(ev.target===fundo)fundo.remove();};
+  $('#env').onclick=async()=>{
+    const sr=$('#sr').value.trim(), nm=$('#nm').value.trim(), err=$('#merr');
+    const sel = p.faixas.length>1 ? [...fundo.querySelectorAll('.faixas input:checked')].map(x=>p.faixas[+x.value]) : p.faixas;
+    if(!sr){err.textContent='Informe o número de série.';return}
+    if(!sel.length){err.textContent='Marque pelo menos uma faixa.';return}
+    if(!nm){err.textContent='Informe seu nome.';return}
+    ls.set('pncv_nome', nm);
+    const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2));
+    const payload = {id, contrato:S.uf, codigo:S.codigo, ponto:p.id, cod:p.cod, et:p.et,
+      linhas:sel.map(f=>f.k), faixas:sel.map(f=>f.f), etapa:e.col, etapa_titulo:e.titulo, etapa_nome:e.nome,
+      tipo:'serie', serie:sr, data:'', nome:nm, enviado_em:new Date().toISOString()};
+    const bt=$('#env'); bt.disabled=true; bt.textContent='Enviando…';
+    try{
+      await fetch(ENVIO_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
+      const lista = ls.get('pncv_env_'+S.uf, []); lista.push({ponto:p.id, etapa:e.col, resumo:'série '+sr+' ('+sel.map(f=>f.f).join(', ')+')', dia:hoje}); ls.set('pncv_env_'+S.uf, lista.slice(-300));
+      fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">Nº de série: ${esc(sr)}.<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
+      fundo.querySelector('#fech').onclick=()=>{fundo.remove();telaPonto(p.id);};
+    }catch(x){ bt.disabled=false; bt.textContent='Enviar'; err.textContent='Sem conexão. Tente de novo quando tiver sinal.'; }
+  };
+}
+
+telaEntrada();
+</script>
+</body>
+</html>
