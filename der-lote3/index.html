@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#1f3864">
+<title>DER-MG Lote 3 · Lançamentos de campo</title>
+<style>
+:root{
+  --azul:#1f3864; --azul2:#2f5597; --fundo:#f3f5f9; --card:#fff; --texto:#1b2430; --sub:#5b6676; --linha:#dfe4ec;
+  --ok:#1e7b3a; --okbg:#e3f3e7; --prev:#1d5fb4; --prevbg:#ddebf7; --venc:#b42318; --vencbg:#fde4e1;
+  --sem:#8a5a00; --sembg:#fff1cc; --na:#5b6676; --nabg:#eceff3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fundo);color:var(--texto);font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+button,input,select{font:inherit}
+.topo{position:sticky;top:0;z-index:5;background:var(--azul);color:#fff;padding:12px 16px 10px;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.topo h1{margin:0;font-size:17px;font-weight:650;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.topo small{display:block;opacity:.8;font-size:12px;margin-top:2px}
+.topo .sair{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:4px 10px;font-size:13px;flex:0 0 auto}
+.busca{margin-top:10px;position:relative}
+.busca input{width:100%;padding:11px 12px 11px 38px;border-radius:10px;border:0;font-size:16px}
+.busca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.5}
+.filtros{display:flex;gap:6px;overflow-x:auto;padding:10px 16px 2px;-webkit-overflow-scrolling:touch}
+.filtros button{flex:0 0 auto;border:1px solid var(--linha);background:#fff;border-radius:999px;padding:6px 12px;font-size:14px;color:var(--sub)}
+.filtros button.on{background:var(--azul2);border-color:var(--azul2);color:#fff}
+main{padding:8px 16px 90px;max-width:760px;margin:0 auto}
+.ponto{background:var(--card);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid var(--linha);cursor:pointer}
+.ponto .t{font-weight:650}
+.ponto .s{color:var(--sub);font-size:13px;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:12px;padding:3px 8px;border-radius:999px;white-space:nowrap}
+.c-ok{background:var(--okbg);color:var(--ok)} .c-prev{background:var(--prevbg);color:var(--prev)}
+.c-venc{background:var(--vencbg);color:var(--venc)} .c-sem{background:var(--sembg);color:var(--sem)} .c-na{background:var(--nabg);color:var(--na)}
+.c-trav{background:#3b4250;color:#fff}
+.barra{height:5px;background:var(--linha);border-radius:3px;margin-top:9px;overflow:hidden}.barra i{display:block;height:100%;background:var(--ok)}
+.vazio{text-align:center;color:var(--sub);padding:40px 10px}
+.entrada{max-width:420px;margin:0 auto;padding:28px 18px}
+.entrada h2{margin:0 0 4px;font-size:22px}.entrada p{color:var(--sub);margin:0 0 18px}
+.contratos{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px}
+.contratos button{padding:16px 8px;border-radius:12px;border:2px solid var(--linha);background:#fff;font-weight:650;font-size:16px}
+.contratos button span{display:block;font-weight:400;font-size:13px;color:var(--sub);margin-top:2px}
+label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
+.campo{width:100%;padding:12px;border:1px solid #c9d1dd;border-radius:10px;font-size:16px;background:#fff}
+.btn{width:100%;padding:13px;border:0;border-radius:10px;background:var(--azul2);color:#fff;font-weight:650;font-size:16px;margin-top:14px}
+.btn:disabled{opacity:.5}.btn.sec{background:#fff;color:var(--azul2);border:1px solid var(--azul2)}
+.erro{color:var(--venc);font-size:14px;margin-top:8px;min-height:18px}
+.det-cab{background:#fff;border-bottom:1px solid var(--linha);padding:12px 16px}
+.det-cab .t{font-weight:650}.det-cab .s{color:var(--sub);font-size:13px;margin-top:2px}
+.voltar{border:0;background:none;color:var(--azul2);font-weight:600;padding:0;margin-bottom:6px}
+.etapa{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:11px 12px;margin:8px 0;cursor:pointer}
+.etapa .n{font-weight:600}
+.etapa.bloq{cursor:default;background:#fafbfc}
+.aviso{background:#fff8e1;border:1px solid #f0d27a;color:#6b5000;border-radius:10px;padding:9px 12px;font-size:13px;margin:10px 0}
+.fundo-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modal{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.modal h3{margin:0 0 2px;font-size:18px}.modal .s{color:var(--sub);font-size:13px}
+.opcoes{display:grid;gap:8px;margin-top:12px}
+.opcoes label.op{display:flex;align-items:center;gap:10px;border:1px solid var(--linha);border-radius:10px;padding:11px;margin:0;color:var(--texto);font-size:15px}
+.opcoes input[type=radio]{width:20px;height:20px}
+.ok-msg{background:var(--okbg);color:var(--ok);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+.pend{font-size:12px;color:var(--prev);margin-top:3px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px;margin-top:8px}
+.info dt{color:var(--sub)}.info dd{margin:0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* Página de lançamentos de campo — DER-MG Lote 3 — GCT.
+   Sem código de acesso. Cada regional vê só os seus pontos (coluna Regional da planilha).
+   O campo lança as etapas Padrão até Aferidos (colunas R a Y da aba "Pontos Instalação").
+   Os lançamentos vão para a caixa de entrada (Google Apps Script); a rotina dos dias úteis passa para a planilha. */
+const ENVIO_URL = 'https://script.google.com/macros/s/AKfycbx4xV4P_OZpiD6mMqHPwEHqkBD_3gPUzcS5viJUBjNj1f9KgHb5juDMIeUyJNjbDLNd/exec';
+const CONTRATO = 'DER-L3';
+const REGIONAIS = [['triangulo','Triângulo'],['montes-claros','Montes Claros'],['sul','Sul']];
+const app = document.getElementById('app');
+const S = { reg:null, dados:null, filtro:'pend', busca:'', ponto:null };
+const ls = { get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoje = (()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`})();
+const br = iso => iso ? iso.slice(8,10)+'-'+iso.slice(5,7)+'-'+iso.slice(2,4) : '';
+const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const PEND_SEM = ['Sem previsão'];
+
+async function abrir(reg){
+  const r = await fetch(`dados/${reg}.json?t=${Date.now()}`, {cache:'no-store'});
+  if(!r.ok) throw new Error('Dados da regional não encontrados.');
+  return r.json();
+}
+
+/* ---------- situação de cada etapa (cópia fiel da célula da planilha) ---------- */
+function estado(v){ // v = [tipo, valor]
+  const [k,d] = v||['',''];
+  if(k==='ok') return {c:'ok', t:'OK', o:3, lanca:false, bloq:'Já consta como OK na planilha.'};
+  if(k==='p') return d < hoje ? {c:'venc', t:'Vencida '+br(d), o:0, lanca:true} : {c:'prev', t:'Previsto '+br(d), o:2, lanca:true};
+  if(k==='t') return {c:'sem', t:d, o:1, lanca:true};
+  if(k==='x') return {c:'trav', t:d, o:4, lanca:false, bloq:`Na planilha está "${d}". Essa situação é definida pelo escritório.`};
+  return {c:'sem', t:'Sem lançamento', o:1, lanca:true};
+}
+function travado(p){ // CANCELADO / SUSPENSO DER etc. em todas as etapas
+  const vs=S.dados.etapas.map(e=>p.v[e.col]||['','']);
+  return vs.every(v=>v[0]==='x') ? vs[0][1] : '';
+}
+function resumoPonto(p){
+  let feitas=0,venc=0,sem=0,prev=0,trav=0; const total=S.dados.etapas.length;
+  for(const e of S.dados.etapas){
+    const c=estado(p.v[e.col]).c;
+    if(c==='ok') feitas++; else if(c==='venc') venc++; else if(c==='prev') prev++; else if(c==='trav') trav++; else sem++;
+  }
+  return {feitas,total,venc,sem,prev,trav};
+}
+function pendentes(){ return ls.get('derl3_env_'+S.reg, []).filter(x=>x.dia >= (S.dados.gerado_em||'')); }
+
+/* ---------- telas ---------- */
+function telaEntrada(msg){
+  app.innerHTML = `<div class="topo"><h1>DER-MG Lote 3</h1><small>Lançamentos de campo · GCT – Gerenciamento e Controle de Trânsito</small></div>
+  <div class="entrada"><h2>DER-MG Lote 3</h2><p>Toque na sua regional para ver os pontos.</p>
+  <div class="contratos">${REGIONAIS.map(([k,n])=>`<button data-r="${k}">${n}</button>`).join('')}</div>
+  <div class="erro" id="err">${esc(msg||'')}</div></div>`;
+  app.querySelectorAll('.contratos button').forEach(b=>b.onclick=async()=>{
+    const reg=b.dataset.r, err=document.getElementById('err');
+    app.querySelectorAll('.contratos button').forEach(x=>x.disabled=true);
+    const txt=b.textContent; b.textContent='Abrindo…';
+    try{ S.reg=reg; S.dados = await abrir(reg); S.busca=''; telaLista(); }
+    catch(e){ app.querySelectorAll('.contratos button').forEach(x=>x.disabled=false); b.textContent=txt; err.textContent=e.message; }
+  });
+}
+
+function telaLista(){
+  S.ponto=null;
+  const d=S.dados;
+  app.innerHTML = `<div class="topo"><h1>${esc(d.titulo)} <button class="sair" id="sair">Regionais</button></h1>
+    <small>Planilha atualizada em ${br(d.gerado_em)} · ${d.pontos.length} pontos</small>
+    <div class="busca"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Pesquisar: rodovia, km, município ou item" value="${esc(S.busca)}"></div></div>
+    <div class="filtros">${[['pend','Pendentes'],['venc','Vencidas'],['sem','Sem data'],['todos','Todos']].map(([k,t])=>`<button data-f="${k}" class="${S.filtro===k?'on':''}">${t}</button>`).join('')}</div>
+    <main id="lista"></main>`;
+  document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
+  const q=document.getElementById('q'); q.oninput=()=>{S.busca=q.value;desenharLista();};
+  app.querySelectorAll('.filtros button').forEach(b=>b.onclick=()=>{S.filtro=b.dataset.f;app.querySelectorAll('.filtros button').forEach(x=>x.classList.toggle('on',x===b));desenharLista();});
+  desenharLista();
+}
+
+function desenharLista(){
+  const termos = norm(S.busca).split(/\s+/).filter(Boolean);
+  const pend = pendentes();
+  let itens = S.dados.pontos.map(p=>({p, r:resumoPonto(p)})).filter(({p,r})=>{
+    if(termos.length){
+      const alvo = norm(`${p.end} ${p.end.replace(/,/g,'.')} ${p.mun} item ${p.id} ${p.tipo} ${p.fab} os ${p.os}`);
+      return termos.every(t=>alvo.includes(t));
+    }
+    const aberto = r.sem + r.prev + r.venc;   // etapas que o campo ainda pode lançar
+    if(S.filtro==='pend') return aberto>0;
+    if(S.filtro==='venc') return r.venc>0;
+    if(S.filtro==='sem') return r.sem>0;
+    return true;
+  });
+  itens.sort((a,b)=> (b.r.venc>0)-(a.r.venc>0) || (b.r.sem>0)-(a.r.sem>0) || (a.r.feitas/a.r.total)-(b.r.feitas/b.r.total) || (+a.p.id)-(+b.p.id));
+  const el=document.getElementById('lista');
+  if(!itens.length){ el.innerHTML=`<div class="vazio">${termos.length?'Nenhum ponto encontrado para essa pesquisa.':'Nenhum ponto neste filtro.'}</div>`; return; }
+  el.innerHTML = itens.map(({p,r})=>{
+    const np = pend.filter(x=>x.ponto===p.id).length, tv=travado(p);
+    return `<div class="ponto" data-id="${esc(p.id)}"><div class="t">${esc(p.end)}</div>
+    <div class="s">Item ${esc(p.id)} · OS ${esc(p.os)} · ${esc(p.tipo)} · ${esc(p.fab)} · Estudo: ${esc(p.estudo)}${p.prio?' · Prioritário':''}</div>
+    <div class="chips">${tv?`<span class="chip c-trav">${esc(tv)}</span>`:`${r.venc?`<span class="chip c-venc">${r.venc} vencida${r.venc>1?'s':''}</span>`:''}${r.sem?`<span class="chip c-sem">${r.sem} sem data</span>`:''}${r.prev?`<span class="chip c-prev">${r.prev} prevista${r.prev>1?'s':''}</span>`:''}${r.trav?`<span class="chip c-trav">${r.trav} com situação do escritório</span>`:''}<span class="chip c-ok">${r.feitas}/${r.total} OK</span>`}</div>
+    ${np?`<div class="pend">${np} lançamento${np>1?'s':''} enviado${np>1?'s':''} — entra na planilha na próxima atualização</div>`:''}
+    <div class="barra"><i style="width:${Math.round(100*r.feitas/r.total)}%"></i></div></div>`;
+  }).join('');
+  el.querySelectorAll('.ponto').forEach(c=>c.onclick=()=>telaPonto(c.dataset.id));
+}
+
+function telaPonto(id){
+  const p = S.dados.pontos.find(x=>x.id===id); S.ponto=p;
+  const pend = pendentes().filter(x=>x.ponto===id);
+  let html='';
+  for(const e of S.dados.etapas){
+    const st = estado(p.v[e.col]);
+    const pe = pend.filter(x=>x.etapa===e.col).slice(-1)[0];
+    html += `<div class="etapa${st.lanca?'':' bloq'}" data-col="${e.col}"><div><div class="n">${esc(e.nome)}</div>
+      ${pe?`<div class="pend">Enviado: ${esc(pe.resumo)}</div>`:''}</div>
+      <span class="chip c-${st.c}">${esc(st.t)}</span></div>`;
+  }
+  const tv=travado(p);
+  app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Regionais</button></h1><small>Toque na etapa para lançar</small></div>
+  <div class="det-cab"><button class="voltar" id="volta">‹ Voltar à lista</button>
+  <div class="t">${esc(p.end)}</div>
+  <dl class="info"><dt>Item</dt><dd>${esc(p.id)} · OS ${esc(p.os)}</dd><dt>Município</dt><dd>${esc(p.mun)}</dd>
+  <dt>Equipamento</dt><dd>${esc(p.tipo)} · ${esc(p.fab)} · ${esc(p.fx)} faixa(s) · ${esc(p.vel)} km/h</dd>
+  <dt>Estudo técnico</dt><dd>${esc(p.estudo)}</dd><dt>Ponto</dt><dd>${esc(p.novo)}${p.prio?' · prioritário':''}</dd>
+  ${p.prazo?`<dt>Prazo final</dt><dd>${br(p.prazo)}${p.sit?' · '+esc(p.sit):''}</dd>`:''}</dl></div>
+  <main>${tv?`<div class="aviso">Ponto com situação <b>${esc(tv)}</b> na planilha.</div>`:''}${html}</main>`;
+  document.getElementById('volta').onclick=telaLista;
+  document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
+  app.querySelectorAll('.etapa').forEach(x=>x.onclick=()=>{
+    const st=estado(p.v[x.dataset.col]);
+    if(!st.lanca){ aviso(st.bloq+' Para corrigir, fale com o escritório.'); return; }
+    modalLanc(x.dataset.col);
+  });
+  window.scrollTo(0,0);
+}
+
+function aviso(txt){
+  const fundo=document.createElement('div'); fundo.className='fundo-modal';
+  fundo.innerHTML=`<div class="modal"><h3>Etapa sem lançamento pelo link</h3><div class="aviso">${esc(txt)}</div><button class="btn" id="fech">Fechar</button></div>`;
+  document.body.appendChild(fundo);
+  fundo.querySelector('#fech').onclick=()=>fundo.remove();
+  fundo.onclick=ev=>{if(ev.target===fundo)fundo.remove();};
+}
+
+function modalLanc(col){
+  const p=S.ponto, e=S.dados.etapas.find(x=>x.col===col);
+  const nome = ls.get('derl3_nome','');
+  const fundo=document.createElement('div'); fundo.className='fundo-modal';
+  fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Lançar ${esc(e.nome)}">
+   <h3>${esc(e.nome)}</h3><div class="s">Item ${esc(p.id)} · ${esc(p.end)}</div>
+   <div class="opcoes">
+     <label class="op"><input type="radio" name="tp" value="realizado"> Realizado (OK)</label>
+     <label class="op"><input type="radio" name="tp" value="previsto" checked> Previsto para</label>
+     <label class="op"><input type="radio" name="tp" value="pendencia"> Pendência</label>
+   </div>
+   <div id="bxData"><label for="dt">Data prevista</label><input id="dt" type="date" class="campo"></div>
+   <div id="bxPend"><label for="pd">Pendência</label><select id="pd" class="campo">${S.dados.pendencias.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>
+   <label for="nm">Seu nome</label><input id="nm" class="campo" value="${esc(nome)}" placeholder="Nome de quem está lançando">
+   <div class="erro" id="merr"></div>
+   <button class="btn" id="env">Enviar</button><button class="btn sec" id="canc">Cancelar</button></div>`;
+  document.body.appendChild(fundo);
+  const $=s=>fundo.querySelector(s);
+  const a=new Date(); a.setDate(a.getDate()+1);
+  const amanha=`${a.getFullYear()}-${String(a.getMonth()+1).padStart(2,'0')}-${String(a.getDate()).padStart(2,'0')}`;
+  $('#dt').min=amanha;
+  const ajusta=()=>{const tp=fundo.querySelector('input[name=tp]:checked').value;
+    $('#bxData').style.display = tp==='previsto'?'block':'none';
+    $('#bxPend').style.display = tp==='pendencia'?'block':'none';};
+  fundo.querySelectorAll('input[name=tp]').forEach(r=>r.onchange=ajusta); ajusta();
+  $('#canc').onclick=()=>fundo.remove();
+  fundo.onclick=ev=>{if(ev.target===fundo)fundo.remove();};
+  $('#env').onclick=async()=>{
+    const tp=fundo.querySelector('input[name=tp]:checked').value, dt=$('#dt').value, nm=$('#nm').value.trim(), pd=$('#pd').value, err=$('#merr');
+    if(!nm){err.textContent='Informe seu nome.';return}
+    if(tp==='previsto' && !dt){err.textContent='Informe a data prevista.';return}
+    if(tp==='previsto' && dt<=hoje){err.textContent='A previsão precisa ser de amanhã em diante.';return}
+    ls.set('derl3_nome', nm);
+    const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2));
+    const payload = {id, contrato:CONTRATO, regional:S.dados.regional, ponto:p.id, chave:p.k, endereco:p.end,
+      etapa:e.col, etapa_nome:e.nome, tipo:tp, data: tp==='previsto'?dt:'', texto: tp==='pendencia'?pd:'',
+      nome:nm, enviado_em:new Date().toISOString()};
+    const bt=$('#env'); bt.disabled=true; bt.textContent='Enviando…';
+    try{
+      await fetch(ENVIO_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
+      const resumo = tp==='realizado'?'OK':(tp==='previsto'?'previsto '+br(dt):pd);
+      const lista = ls.get('derl3_env_'+S.reg, []); lista.push({ponto:p.id, etapa:e.col, resumo, dia:hoje}); ls.set('derl3_env_'+S.reg, lista.slice(-300));
+      fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">${esc(e.nome)}: ${esc(resumo)}.<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
+      fundo.querySelector('#fech').onclick=()=>{fundo.remove();telaPonto(p.id);};
+    }catch(x){ bt.disabled=false; bt.textContent='Enviar'; err.textContent='Sem conexão. Tente de novo quando tiver sinal.'; }
+  };
+}
+
+telaEntrada();
+</script>
+</body>
+</html>
