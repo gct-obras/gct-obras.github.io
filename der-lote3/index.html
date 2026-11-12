@@ -63,6 +63,12 @@ label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
 .pend{font-size:12px;color:var(--prev);margin-top:3px}
 .info{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px;margin-top:8px}
 .info dt{color:var(--sub)}.info dd{margin:0}
+.info .prazo{color:var(--venc);font-weight:700}
+.ponto.e-rep{border:2px solid var(--venc);background:#fff4f2}
+.ponto.e-pend{border:2px solid #e07b00;background:#fff8ef}
+.alerta-estudo{margin-top:8px;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;color:#fff}
+.alerta-estudo.e-rep{background:var(--venc)}.alerta-estudo.e-pend{background:#c96a00}
+.estudo-rep{color:var(--venc);font-weight:700}.estudo-pend{color:#c96a00;font-weight:700}
 </style>
 </head>
 <body>
@@ -84,6 +90,10 @@ const hoje = (()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getM
 const br = iso => iso ? iso.slice(8,10)+'-'+iso.slice(5,7)+'-'+iso.slice(2,4) : '';
 const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const PEND_SEM = ['Sem previsão'];
+/* estudo técnico: aprovado vem primeiro na lista; reprovado e pendente vão para o final, destacados */
+function estudoSit(p){ const e=norm(p.estudo); return e==='aprovado'?'ok':(e.includes('reprov')?'rep':'pend'); }
+const ORDEM_ESTUDO = {ok:0, pend:1, rep:2};
+const AVISO_ESTUDO = {rep:'ESTUDO REPROVADO — não executar a obra neste ponto até a aprovação', pend:'ESTUDO PENDENTE DE APROVAÇÃO — não executar a obra neste ponto até a aprovação'};
 
 async function abrir(reg){
   const r = await fetch(`dados/${reg}.json?t=${Date.now()}`, {cache:'no-store'});
@@ -158,16 +168,17 @@ function desenharLista(){
     if(S.filtro==='sem') return r.sem>0;
     return true;
   });
-  itens.sort((a,b)=> (b.r.venc>0)-(a.r.venc>0) || (b.r.sem>0)-(a.r.sem>0) || (a.r.feitas/a.r.total)-(b.r.feitas/b.r.total) || (+a.p.id)-(+b.p.id));
+  itens.sort((a,b)=> ORDEM_ESTUDO[estudoSit(a.p)]-ORDEM_ESTUDO[estudoSit(b.p)] || (b.r.venc>0)-(a.r.venc>0) || (b.r.sem>0)-(a.r.sem>0) || (a.r.feitas/a.r.total)-(b.r.feitas/b.r.total) || (+a.p.id)-(+b.p.id));
   const el=document.getElementById('lista');
   if(!itens.length){ el.innerHTML=`<div class="vazio">${termos.length?'Nenhum ponto encontrado para essa pesquisa.':'Nenhum ponto neste filtro.'}</div>`; return; }
   el.innerHTML = itens.map(({p,r})=>{
-    const np = pend.filter(x=>x.ponto===p.id).length, tv=travado(p);
-    return `<div class="ponto" data-id="${esc(p.id)}"><div class="t">${esc(p.end)}</div>
+    const np = pend.filter(x=>x.ponto===p.id).length, tv=travado(p), es=estudoSit(p);
+    return `<div class="ponto${es==='ok'?'':' e-'+es}" data-id="${esc(p.id)}"><div class="t">${esc(p.end)}</div>
     <div class="s">Item ${esc(p.id)} · OS ${esc(p.os)} · ${esc(p.tipo)} · ${esc(p.fab)} · Estudo: ${esc(p.estudo)}${p.prio?' · Prioritário':''}</div>
     <div class="chips">${tv?`<span class="chip c-trav">${esc(tv)}</span>`:`${r.venc?`<span class="chip c-venc">${r.venc} vencida${r.venc>1?'s':''}</span>`:''}${r.sem?`<span class="chip c-sem">${r.sem} sem data</span>`:''}${r.prev?`<span class="chip c-prev">${r.prev} prevista${r.prev>1?'s':''}</span>`:''}${r.trav?`<span class="chip c-trav">${r.trav} com situação do escritório</span>`:''}<span class="chip c-ok">${r.feitas}/${r.total} OK</span>`}</div>
     ${np?`<div class="pend">${np} lançamento${np>1?'s':''} enviado${np>1?'s':''} — entra na planilha na próxima atualização</div>`:''}
-    <div class="barra"><i style="width:${Math.round(100*r.feitas/r.total)}%"></i></div></div>`;
+    <div class="barra"><i style="width:${Math.round(100*r.feitas/r.total)}%"></i></div>
+    ${es==='ok'?'':`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`}</div>`;
   }).join('');
   el.querySelectorAll('.ponto').forEach(c=>c.onclick=()=>telaPonto(c.dataset.id));
 }
@@ -183,14 +194,15 @@ function telaPonto(id){
       ${pe?`<div class="pend">Enviado: ${esc(pe.resumo)}</div>`:''}</div>
       <span class="chip c-${st.c}">${esc(st.t)}</span></div>`;
   }
-  const tv=travado(p);
+  const tv=travado(p), es=estudoSit(p);
   app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Regionais</button></h1><small>Toque na etapa para lançar</small></div>
   <div class="det-cab"><button class="voltar" id="volta">‹ Voltar à lista</button>
   <div class="t">${esc(p.end)}</div>
   <dl class="info"><dt>Item</dt><dd>${esc(p.id)} · OS ${esc(p.os)}</dd><dt>Município</dt><dd>${esc(p.mun)}</dd>
   <dt>Equipamento</dt><dd>${esc(p.tipo)} · ${esc(p.fab)} · ${esc(p.fx)} faixa(s) · ${esc(p.vel)} km/h</dd>
-  <dt>Estudo técnico</dt><dd>${esc(p.estudo)}</dd><dt>Ponto</dt><dd>${esc(p.novo)}${p.prio?' · prioritário':''}</dd>
-  ${p.prazo?`<dt>Prazo final</dt><dd>${br(p.prazo)}${p.sit?' · '+esc(p.sit):''}</dd>`:''}</dl></div>
+  <dt>Estudo técnico</dt><dd class="${es==='ok'?'':'estudo-'+es}">${esc(p.estudo)}</dd><dt>Ponto</dt><dd>${esc(p.novo)}${p.prio?' · prioritário':''}</dd>
+  ${p.prazo?`<dt class="prazo">Prazo final</dt><dd class="prazo">${br(p.prazo)}${p.sit?' · '+esc(p.sit):''}</dd>`:''}</dl>
+  ${es==='ok'?'':`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`}</div>
   <main>${tv?`<div class="aviso">Ponto com situação <b>${esc(tv)}</b> na planilha.</div>`:''}${html}</main>`;
   document.getElementById('volta').onclick=telaLista;
   document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
