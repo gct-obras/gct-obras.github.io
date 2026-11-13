@@ -167,7 +167,7 @@ function desenharLista(){
   el.innerHTML = itens.slice(0,300).map(({p,r})=>{
     const np = pend.filter(x=>x.ponto===p.id).length;
     return `<div class="ponto" data-id="${esc(p.id)}"><div class="t">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.mun)}</div>
-    <div class="s">${esc(p.cod||'sem código')} · ${esc(p.et||'')} · ${esc(p.tipo)} · ${p.faixas.length} faixa${p.faixas.length>1?'s':''}${p.sit?' · '+esc(p.sit):''}</div>
+    <div class="s">${esc(p.cod||'sem código')} · ${esc(p.et||'')} · ${esc(p.tipo)} · faixa${p.faixas.length>1?'s':''} ${p.faixas.map(f=>esc(f.f)).join(', ')}${p.sit?' · '+esc(p.sit):''}</div>
     <div class="chips">${r.venc?`<span class="chip c-venc">${r.venc} vencida${r.venc>1?'s':''}</span>`:''}${r.sem?`<span class="chip c-sem">${r.sem} sem previsão</span>`:''}${r.prev?`<span class="chip c-prev">${r.prev} prevista${r.prev>1?'s':''}</span>`:''}<span class="chip c-ok">${r.feitas}/${r.total} concluídas</span></div>
     ${np?`<div class="pend">${np} lançamento${np>1?'s':''} enviado${np>1?'s':''} — entra na planilha na próxima atualização</div>`:''}
     <div class="barra"><i style="width:${Math.round(100*r.feitas/r.total)}%"></i></div></div>`;
