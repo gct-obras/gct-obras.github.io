@@ -50,6 +50,13 @@ label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
 .etapa{display:flex;justify-content:space-between;align-items:center;gap:10px;background:#fff;border:1px solid var(--linha);border-radius:10px;padding:11px 12px;margin:8px 0;cursor:pointer}
 .etapa .n{font-weight:600}.etapa .g{font-size:12px;color:var(--sub)}
 .etapa .fx{font-size:12px;color:var(--sub);margin-top:3px}
+.etapa.sel{border-color:var(--azul2);background:#eef3fb}
+.etapa .ck{width:22px;height:22px;border-radius:6px;border:2px solid var(--linha);flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+.etapa.sel .ck{background:var(--azul2);border-color:var(--azul2)}
+.multi-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:5}
+.multi-bar .btn{margin-top:0}
+.modo{display:flex;gap:8px;margin:10px 0 2px}.modo button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--azul2);background:#fff;color:var(--azul2);font-weight:600;font-size:14px}
+.modo button.on{background:var(--azul2);color:#fff}
 .grupo{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--sub);margin:16px 2px 4px}
 .aviso{background:#fff8e1;border:1px solid #f0d27a;color:#6b5000;border-radius:10px;padding:9px 12px;font-size:13px;margin:10px 0}
 .fundo-modal{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
@@ -176,7 +183,9 @@ function desenharLista(){
 }
 
 function telaPonto(id){
-  const p = S.dados.pontos.find(x=>x.id===id); S.ponto=p;
+  const p = S.dados.pontos.find(x=>x.id===id);
+  if(!S.ponto || S.ponto.id!==id){ S.multi=false; S.sel=new Set(); }
+  S.ponto=p;
   const pend = pendentes().filter(x=>x.ponto===id);
   let grupo='', html='';
   for(const e of S.dados.etapas){
@@ -184,18 +193,29 @@ function telaPonto(id){
     const st = p.faixas.map(f=>({f:f.f, s:e.tipo==='serie'?((f.v[e.col]||[])[1]?{c:'ok',t:f.v[e.col][1]}:{c:'na',t:'Não informado'}):estado(f.v[e.col])}));
     const iguais = st.every(x=>x.s.t===st[0].s.t);
     const pe = pend.filter(x=>x.etapa===e.col).slice(-1)[0];
-    html += `<div class="etapa" data-col="${e.col}"><div><div class="n">${esc(e.nome)}</div>
+    const podeSel = S.multi && e.tipo!=='serie';
+    if(S.multi && !podeSel) continue;
+    html += `<div class="etapa${podeSel&&S.sel.has(e.col)?' sel':''}" data-col="${e.col}">${podeSel?'<span class="ck">✓</span>':''}<div style="flex:1"><div class="n">${esc(e.nome)}</div>
       ${iguais?'':`<div class="fx">${st.map(x=>`${esc(x.f)}: ${esc(x.s.t)}`).join(' · ')}</div>`}
       ${pe?`<div class="pend">Enviado: ${esc(pe.resumo)}</div>`:''}</div>
       ${iguais?`<span class="chip c-${st[0].s.c}">${esc(st[0].s.t)}</span>`:`<span class="chip c-na">Varia</span>`}</div>`;
   }
-  app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Contratos</button></h1><small>Toque na etapa para lançar</small></div>
+  app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Contratos</button></h1><small>${S.multi?'Marque as etapas que vão receber a mesma informação':'Toque na etapa para lançar'}</small></div>
   <div class="det-cab"><button class="voltar" id="volta">‹ Voltar à lista</button>
   <div class="t" style="font-weight:650">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.mun)}</div>
-  <div class="s" style="color:var(--sub);font-size:13px">${esc(p.cod||'sem código')} · ${esc(p.et)} · ${esc(p.tipo)} · faixas ${p.faixas.map(f=>esc(f.f)).join(', ')}</div></div>
-  <main>${p.ni?'':'<div class="aviso">Este ponto ainda não tem NI. Lance apenas previsões.</div>'}${html}</main>`;
+  <div class="s" style="color:var(--sub);font-size:13px">${esc(p.cod||'sem código')} · ${esc(p.et)} · ${esc(p.tipo)} · faixas ${p.faixas.map(f=>esc(f.f)).join(', ')}</div>
+  <div class="modo"><button id="m1" class="${S.multi?'':'on'}">Uma etapa</button><button id="m2" class="${S.multi?'on':''}">Várias etapas de uma vez</button></div></div>
+  <main style="${S.multi?'padding-bottom:90px':''}">${p.ni?'':'<div class="aviso">Este ponto ainda não tem NI. Lance apenas previsões.</div>'}${html}</main>
+  ${S.multi?`<div class="multi-bar"><button class="btn" id="mlanc" ${S.sel.size?'':'disabled'}>Lançar ${S.sel.size} etapa${S.sel.size===1?'':'s'}</button></div>`:''}`;
   document.getElementById('volta').onclick=telaLista;
   document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
+  document.getElementById('m1').onclick=()=>{S.multi=false;S.sel=new Set();telaPonto(id);};
+  document.getElementById('m2').onclick=()=>{S.multi=true;S.sel=new Set();telaPonto(id);};
+  if(S.multi){
+    app.querySelectorAll('.etapa').forEach(x=>x.onclick=()=>{const c=x.dataset.col; S.sel.has(c)?S.sel.delete(c):S.sel.add(c); const y=window.scrollY; telaPonto(id); window.scrollTo(0,y);});
+    const b=document.getElementById('mlanc'); if(b) b.onclick=()=>modalMulti([...S.sel]);
+    return;
+  }
   app.querySelectorAll('.etapa').forEach(x=>x.onclick=()=>modalLanc(x.dataset.col));
   window.scrollTo(0,0);
 }
@@ -249,6 +269,69 @@ function modalLanc(col){
       fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">${esc(e.nome)}: ${esc(resumo)}.<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
       fundo.querySelector('#fech').onclick=()=>{fundo.remove();telaPonto(p.id);};
     }catch(x){ bt.disabled=false; bt.textContent='Enviar'; err.textContent='Sem conexão. Tente de novo quando tiver sinal.'; }
+  };
+}
+
+function modalMulti(cols){
+  const p=S.ponto, es=S.dados.etapas.filter(x=>cols.includes(x.col));
+  const todasPlaca = es.every(e=>e.tipo==='placa'), algumaPlaca = es.some(e=>e.tipo==='placa');
+  const todasTraco = es.every(e=>e.aceita_traco);
+  const nome = ls.get('pncv_nome','');
+  const fundo=document.createElement('div'); fundo.className='fundo-modal';
+  fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Lançar várias etapas">
+   <h3>${es.length} etapas</h3><div class="s">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.cod||p.et)}</div>
+   <div class="s" style="margin-top:6px">${es.map(e=>esc(e.nome)).join(' · ')}</div>
+   <div class="opcoes">
+     <label class="op"><input type="radio" name="tp" value="realizado" ${p.ni?'':'disabled'}> Realizado</label>
+     <label class="op"><input type="radio" name="tp" value="previsto" checked> Previsto para</label>
+     ${todasTraco?'<label class="op"><input type="radio" name="tp" value="na"> Não se aplica neste ponto ( - )</label>':''}
+   </div>
+   <div id="bxData"><label for="dt">Data</label><input id="dt" type="date" class="campo">
+     ${algumaPlaca&&!todasPlaca?'<div class="s" id="obsPlaca" style="margin-top:4px">Nas placas, o realizado entra como OK.</div>':''}</div>
+   ${p.faixas.length>1?`<label>Faixas</label><div class="faixas">${p.faixas.map((f,i)=>`<label><input type="checkbox" value="${i}" checked> ${esc(f.f)}</label>`).join('')}</div>`:''}
+   <label for="nm">Seu nome</label><input id="nm" class="campo" value="${esc(nome)}" placeholder="Nome de quem está lançando">
+   <div class="erro" id="merr"></div>
+   <button class="btn" id="env">Enviar ${es.length} lançamentos</button><button class="btn sec" id="canc">Cancelar</button></div>`;
+  document.body.appendChild(fundo);
+  const $=s=>fundo.querySelector(s);
+  const ajusta=()=>{const tp=fundo.querySelector('input[name=tp]:checked').value; const dt=$('#dt');
+    $('#bxData').style.display = (tp==='na' || (tp==='realizado' && todasPlaca)) ? 'none':'block';
+    const ob=$('#obsPlaca'); if(ob) ob.style.display = tp==='realizado'?'block':'none';
+    if(tp==='realizado'){dt.max=hoje;dt.min='';if(!dt.value||dt.value>hoje)dt.value=hoje;}
+    if(tp==='previsto'){const a=new Date();a.setDate(a.getDate()+1);const amanha=a.toISOString().slice(0,10);dt.min=amanha;dt.max='';if(!dt.value||dt.value<=hoje)dt.value='';}};
+  fundo.querySelectorAll('input[name=tp]').forEach(r=>r.onchange=ajusta); ajusta();
+  $('#canc').onclick=()=>fundo.remove();
+  fundo.onclick=ev=>{if(ev.target===fundo)fundo.remove();};
+  $('#env').onclick=async()=>{
+    const tp=fundo.querySelector('input[name=tp]:checked').value, dt=$('#dt').value, nm=$('#nm').value.trim(), err=$('#merr');
+    const sel = p.faixas.length>1 ? [...fundo.querySelectorAll('.faixas input:checked')].map(x=>p.faixas[+x.value]) : p.faixas;
+    if(!sel.length){err.textContent='Marque pelo menos uma faixa.';return}
+    if(!nm){err.textContent='Informe seu nome.';return}
+    const precisaData = !(tp==='na' || (tp==='realizado'&&todasPlaca));
+    if(precisaData && !dt){err.textContent='Informe a data.';return}
+    if(tp==='realizado' && precisaData && dt>hoje){err.textContent='Data de realizado não pode ser futura. Use "Previsto para".';return}
+    if(tp==='previsto' && dt<=hoje){err.textContent='Previsão precisa ser de amanhã em diante.';return}
+    ls.set('pncv_nome', nm);
+    const bt=$('#env'); bt.disabled=true;
+    const lista = ls.get('pncv_env_'+S.uf, []); let ok=0;
+    try{
+      for(const e of es){
+        bt.textContent=`Enviando ${ok+1} de ${es.length}…`;
+        const placa=e.tipo==='placa', usaData = !(tp==='na' || (tp==='realizado'&&placa));
+        const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2));
+        const payload = {id, contrato:S.uf, codigo:S.codigo, ponto:p.id, cod:p.cod, et:p.et,
+          linhas:sel.map(f=>f.k), faixas:sel.map(f=>f.f), etapa:e.col, etapa_titulo:e.titulo, etapa_nome:e.nome,
+          tipo:tp, data: usaData?dt:'', nome:nm, enviado_em:new Date().toISOString(), lote_envio:es.length};
+        await fetch(ENVIO_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
+        const resumo = tp==='na'?'não se aplica':(tp==='realizado'?(placa?'OK':'realizado '+br(dt)):'previsto '+br(dt));
+        lista.push({ponto:p.id, etapa:e.col, resumo:resumo+' ('+sel.map(f=>f.f).join(', ')+')', dia:hoje}); ok++;
+      }
+      ls.set('pncv_env_'+S.uf, lista.slice(-300));
+      const resumo = tp==='na'?'não se aplica':(tp==='realizado'?'realizado'+(todasPlaca?' (OK)':' '+br(dt)):'previsto '+br(dt));
+      fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">${es.length} etapas: ${esc(resumo)}.<br>${es.map(e=>esc(e.nome)).join(' · ')}<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
+      fundo.querySelector('#fech').onclick=()=>{fundo.remove();S.multi=false;S.sel=new Set();telaPonto(p.id);};
+    }catch(x){ ls.set('pncv_env_'+S.uf, lista.slice(-300)); bt.disabled=false; bt.textContent='Enviar as que faltam';
+      err.textContent=`Sem conexão: ${ok} de ${es.length} enviadas. Tente de novo quando tiver sinal.`; es.splice(0,ok); }
   };
 }
 
