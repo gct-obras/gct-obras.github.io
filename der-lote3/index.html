@@ -63,6 +63,16 @@ label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
 .pend{font-size:12px;color:var(--prev);margin-top:3px}
 .info{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px;margin-top:8px}
 .info dt{color:var(--sub)}.info dd{margin:0}
+.modo{display:flex;gap:8px;margin:10px 0 2px}
+.modo button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--azul2);background:#fff;color:var(--azul2);font-weight:600;font-size:14px}
+.modo button.on{background:var(--azul2);color:#fff}
+.etapa .ck{width:22px;height:22px;border-radius:6px;border:2px solid var(--linha);flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+.etapa.sel{border-color:var(--azul2);background:#eef3fb}
+.etapa.sel .ck{background:var(--azul2);border-color:var(--azul2)}
+.etapa.bloq.multi{opacity:.55}
+.marcar{border:0;background:none;color:var(--azul2);font-weight:600;padding:6px 0;font-size:14px}
+.multi-bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--linha);padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;z-index:5}
+.multi-bar .btn{margin-top:0}
 .info .prazo{color:var(--venc);font-weight:700}
 .ponto.e-rep{border:2px solid var(--venc);background:#fff4f2}
 .ponto.e-pend{border:2px solid #e07b00;background:#fff8ef}
@@ -184,32 +194,53 @@ function desenharLista(){
 }
 
 function telaPonto(id){
-  const p = S.dados.pontos.find(x=>x.id===id); S.ponto=p;
+  const p = S.dados.pontos.find(x=>x.id===id);
+  if(!S.ponto || S.ponto.id!==id){ S.multi=false; S.sel=new Set(); }
+  S.ponto=p;
   const pend = pendentes().filter(x=>x.ponto===id);
+  const livres = S.dados.etapas.filter(e=>estado(p.v[e.col]).lanca).map(e=>e.col);
   let html='';
   for(const e of S.dados.etapas){
     const st = estado(p.v[e.col]);
     const pe = pend.filter(x=>x.etapa===e.col).slice(-1)[0];
-    html += `<div class="etapa${st.lanca?'':' bloq'}" data-col="${e.col}"><div><div class="n">${esc(e.nome)}</div>
+    const podeSel = S.multi && st.lanca;
+    html += `<div class="etapa${st.lanca?'':' bloq'}${S.multi?' multi':''}${podeSel&&S.sel.has(e.col)?' sel':''}" data-col="${e.col}">${podeSel?'<span class="ck">✓</span>':''}<div style="flex:1"><div class="n">${esc(e.nome)}</div>
       ${pe?`<div class="pend">Enviado: ${esc(pe.resumo)}</div>`:''}</div>
       <span class="chip c-${st.c}">${esc(st.t)}</span></div>`;
   }
+  if(S.multi && livres.length) html = `<button class="marcar" id="mtodas">${S.sel.size===livres.length?'Desmarcar todas':'Marcar todas as etapas em aberto ('+livres.length+')'}</button>` + html;
   const tv=travado(p), es=estudoSit(p);
-  app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Regionais</button></h1><small>Toque na etapa para lançar</small></div>
+  app.innerHTML = `<div class="topo"><h1>${esc(S.dados.titulo)} <button class="sair" id="sair">Regionais</button></h1><small>${S.multi?'Marque as etapas que vão receber a mesma informação':'Toque na etapa para lançar'}</small></div>
   <div class="det-cab"><button class="voltar" id="volta">‹ Voltar à lista</button>
   <div class="t">${esc(p.end)}</div>
   <dl class="info"><dt>Item</dt><dd>${esc(p.id)} · OS ${esc(p.os)}</dd><dt>Município</dt><dd>${esc(p.mun)}</dd>
   <dt>Equipamento</dt><dd>${esc(p.tipo)} · ${esc(p.fab)} · ${esc(p.fx)} faixa(s) · ${esc(p.vel)} km/h</dd>
   <dt>Estudo técnico</dt><dd class="${es==='ok'?'':'estudo-'+es}">${esc(p.estudo)}</dd><dt>Ponto</dt><dd>${esc(p.novo)}${p.prio?' · prioritário':''}</dd>
   ${p.prazo?`<dt class="prazo">Prazo final</dt><dd class="prazo">${br(p.prazo)}${p.sit?' · '+esc(p.sit):''}</dd>`:''}</dl>
-  ${es==='ok'?'':`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`}</div>
-  <main>${tv?`<div class="aviso">Ponto com situação <b>${esc(tv)}</b> na planilha.</div>`:''}${html}</main>`;
+  ${es==='ok'?'':`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`}
+  ${livres.length>1?`<div class="modo"><button id="m1" class="${S.multi?'':'on'}">Uma etapa</button><button id="m2" class="${S.multi?'on':''}">Várias etapas de uma vez</button></div>`:''}</div>
+  <main style="${S.multi?'padding-bottom:90px':''}">${tv?`<div class="aviso">Ponto com situação <b>${esc(tv)}</b> na planilha.</div>`:''}${html}</main>
+  ${S.multi?`<div class="multi-bar"><button class="btn" id="mlanc" ${S.sel.size?'':'disabled'}>Lançar ${S.sel.size} etapa${S.sel.size===1?'':'s'}</button></div>`:''}`;
   document.getElementById('volta').onclick=telaLista;
   document.getElementById('sair').onclick=()=>{S.dados=null;telaEntrada();};
+  const m1=document.getElementById('m1'), m2=document.getElementById('m2');
+  if(m1) m1.onclick=()=>{S.multi=false;S.sel=new Set();telaPonto(id);};
+  if(m2) m2.onclick=()=>{S.multi=true;S.sel=new Set();telaPonto(id);};
+  if(S.multi){
+    const redesenha=()=>{const y=window.scrollY; telaPonto(id); window.scrollTo(0,y);};
+    const mt=document.getElementById('mtodas');
+    if(mt) mt.onclick=()=>{S.sel = S.sel.size===livres.length ? new Set() : new Set(livres); redesenha();};
+    app.querySelectorAll('.etapa').forEach(x=>x.onclick=()=>{
+      const c=x.dataset.col, st=estado(p.v[c]);
+      if(!st.lanca){ aviso(st.bloq+' Para corrigir, fale com o escritório.'); return; }
+      S.sel.has(c)?S.sel.delete(c):S.sel.add(c); redesenha();});
+    const b=document.getElementById('mlanc'); if(b) b.onclick=()=>modalLanc([...S.sel]);
+    return;
+  }
   app.querySelectorAll('.etapa').forEach(x=>x.onclick=()=>{
     const st=estado(p.v[x.dataset.col]);
     if(!st.lanca){ aviso(st.bloq+' Para corrigir, fale com o escritório.'); return; }
-    modalLanc(x.dataset.col);
+    modalLanc([x.dataset.col]);
   });
   window.scrollTo(0,0);
 }
@@ -222,12 +253,13 @@ function aviso(txt){
   fundo.onclick=ev=>{if(ev.target===fundo)fundo.remove();};
 }
 
-function modalLanc(col){
-  const p=S.ponto, e=S.dados.etapas.find(x=>x.col===col);
+function modalLanc(cols){
+  const p=S.ponto, ets=S.dados.etapas.filter(x=>cols.includes(x.col)), varias=ets.length>1;
   const nome = ls.get('derl3_nome','');
   const fundo=document.createElement('div'); fundo.className='fundo-modal';
-  fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Lançar ${esc(e.nome)}">
-   <h3>${esc(e.nome)}</h3><div class="s">Item ${esc(p.id)} · ${esc(p.end)}</div>
+  fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Lançar ${varias?ets.length+' etapas':esc(ets[0].nome)}">
+   <h3>${varias?ets.length+' etapas':esc(ets[0].nome)}</h3><div class="s">Item ${esc(p.id)} · ${esc(p.end)}</div>
+   ${varias?`<div class="s" style="margin-top:6px">${ets.map(e=>esc(e.nome)).join(' · ')}</div>`:''}
    <div class="opcoes">
      <label class="op"><input type="radio" name="tp" value="realizado"> Realizado (OK)</label>
      <label class="op"><input type="radio" name="tp" value="previsto" checked> Previsto para</label>
@@ -237,7 +269,7 @@ function modalLanc(col){
    <div id="bxPend"><label for="pd">Pendência</label><select id="pd" class="campo">${S.dados.pendencias.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div>
    <label for="nm">Seu nome</label><input id="nm" class="campo" value="${esc(nome)}" placeholder="Nome de quem está lançando">
    <div class="erro" id="merr"></div>
-   <button class="btn" id="env">Enviar</button><button class="btn sec" id="canc">Cancelar</button></div>`;
+   <button class="btn" id="env">${varias?'Enviar '+ets.length+' lançamentos':'Enviar'}</button><button class="btn sec" id="canc">Cancelar</button></div>`;
   document.body.appendChild(fundo);
   const $=s=>fundo.querySelector(s);
   const a=new Date(); a.setDate(a.getDate()+1);
@@ -255,18 +287,24 @@ function modalLanc(col){
     if(tp==='previsto' && !dt){err.textContent='Informe a data prevista.';return}
     if(tp==='previsto' && dt<=hoje){err.textContent='A previsão precisa ser de amanhã em diante.';return}
     ls.set('derl3_nome', nm);
-    const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2));
-    const payload = {id, contrato:CONTRATO, regional:S.dados.regional, ponto:p.id, chave:p.k, endereco:p.end,
-      etapa:e.col, etapa_nome:e.nome, tipo:tp, data: tp==='previsto'?dt:'', texto: tp==='pendencia'?pd:'',
-      nome:nm, enviado_em:new Date().toISOString()};
-    const bt=$('#env'); bt.disabled=true; bt.textContent='Enviando…';
+    const bt=$('#env'); bt.disabled=true;
+    const resumo = tp==='realizado'?'OK':(tp==='previsto'?'previsto '+br(dt):pd);
+    const lista = ls.get('derl3_env_'+S.reg, []); let ok=0;
     try{
-      await fetch(ENVIO_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
-      const resumo = tp==='realizado'?'OK':(tp==='previsto'?'previsto '+br(dt):pd);
-      const lista = ls.get('derl3_env_'+S.reg, []); lista.push({ponto:p.id, etapa:e.col, resumo, dia:hoje}); ls.set('derl3_env_'+S.reg, lista.slice(-300));
-      fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">${esc(e.nome)}: ${esc(resumo)}.<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
-      fundo.querySelector('#fech').onclick=()=>{fundo.remove();telaPonto(p.id);};
-    }catch(x){ bt.disabled=false; bt.textContent='Enviar'; err.textContent='Sem conexão. Tente de novo quando tiver sinal.'; }
+      for(const e of ets){
+        bt.textContent = varias?`Enviando ${ok+1} de ${ets.length}…`:'Enviando…';
+        const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(16).slice(2));
+        const payload = {id, contrato:CONTRATO, regional:S.dados.regional, ponto:p.id, chave:p.k, endereco:p.end,
+          etapa:e.col, etapa_nome:e.nome, tipo:tp, data: tp==='previsto'?dt:'', texto: tp==='pendencia'?pd:'',
+          nome:nm, enviado_em:new Date().toISOString(), lote_envio:ets.length};
+        await fetch(ENVIO_URL, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(payload)});
+        lista.push({ponto:p.id, etapa:e.col, resumo, dia:hoje}); ok++;
+      }
+      ls.set('derl3_env_'+S.reg, lista.slice(-300));
+      fundo.querySelector('.modal').innerHTML = `<h3>Enviado ✔</h3><div class="ok-msg">${varias?ets.length+' etapas':esc(ets[0].nome)}: ${esc(resumo)}.${varias?'<br>'+ets.map(e=>esc(e.nome)).join(' · '):''}<br>Entra na planilha na próxima atualização (dias úteis, de manhã).</div><button class="btn" id="fech">Fechar</button>`;
+      fundo.querySelector('#fech').onclick=()=>{fundo.remove();S.multi=false;S.sel=new Set();telaPonto(p.id);};
+    }catch(x){ ls.set('derl3_env_'+S.reg, lista.slice(-300)); ets.splice(0,ok); bt.disabled=false; bt.textContent=ok?'Enviar as que faltam':'Enviar';
+      err.textContent = ok?`Sem conexão: ${ok} enviada(s). Toque de novo para enviar as que faltam quando tiver sinal.`:'Sem conexão. Tente de novo quando tiver sinal.'; }
   };
 }
 
