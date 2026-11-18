@@ -76,6 +76,10 @@ label{display:block;font-size:14px;color:var(--sub);margin:10px 0 4px}
 .info .prazo{color:var(--venc);font-weight:700}
 .ponto.e-rep{border:2px solid var(--venc);background:#fff4f2}
 .ponto.e-pend{border:2px solid #e07b00;background:#fff8ef}
+.ponto.e-canc{border:2px solid #5b6676;background:#f1f3f6}
+.alerta-estudo.e-ress{background:#7a5a00}.alerta-estudo.e-canc{background:#5b6676}
+.estudo-ress{color:#7a5a00;font-weight:700}.estudo-canc{color:#5b6676;font-weight:700}
+.chip.c-ress{background:#fff1b8;color:#6b4e00;font-weight:700}
 .alerta-estudo{margin-top:8px;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;color:#fff}
 .alerta-estudo.e-rep{background:var(--venc)}.alerta-estudo.e-pend{background:#c96a00}
 .estudo-rep{color:var(--venc);font-weight:700}.estudo-pend{color:#c96a00;font-weight:700}
@@ -101,9 +105,14 @@ const br = iso => iso ? iso.slice(8,10)+'-'+iso.slice(5,7)+'-'+iso.slice(2,4) : 
 const norm = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const PEND_SEM = ['Sem previsão'];
 /* estudo técnico: aprovado vem primeiro na lista; reprovado e pendente vão para o final, destacados */
-function estudoSit(p){ const e=norm(p.estudo); return e==='aprovado'?'ok':(e.includes('reprov')?'rep':'pend'); }
-const ORDEM_ESTUDO = {ok:0, pend:1, rep:2};
-const AVISO_ESTUDO = {rep:'ESTUDO REPROVADO — não executar a obra neste ponto até a aprovação', pend:'ESTUDO PENDENTE DE APROVAÇÃO — não executar a obra neste ponto até a aprovação'};
+function estudoSit(p){ const e=norm(p.estudo);
+  if(e==='aprovado') return 'ok';
+  if(e.startsWith('aprovado') && e.includes('ressalva')) return 'ress';
+  if(e.includes('reprov')) return 'rep';
+  if(e.includes('cancel')) return 'canc';
+  return 'pend'; }
+const ORDEM_ESTUDO = {ok:0, ress:0, pend:1, rep:2, canc:3};
+const AVISO_ESTUDO = {canc:'ESTUDO CANCELADO — não executar a obra neste ponto', rep:'ESTUDO REPROVADO — não executar a obra neste ponto até a aprovação', pend:'ESTUDO PENDENTE DE APROVAÇÃO — não executar a obra neste ponto até a aprovação'};
 
 async function abrir(reg){
   const r = await fetch(`dados/${reg}.json?t=${Date.now()}`, {cache:'no-store'});
@@ -183,12 +192,12 @@ function desenharLista(){
   if(!itens.length){ el.innerHTML=`<div class="vazio">${termos.length?'Nenhum ponto encontrado para essa pesquisa.':'Nenhum ponto neste filtro.'}</div>`; return; }
   el.innerHTML = itens.map(({p,r})=>{
     const np = pend.filter(x=>x.ponto===p.id).length, tv=travado(p), es=estudoSit(p);
-    return `<div class="ponto${es==='ok'?'':' e-'+es}" data-id="${esc(p.id)}"><div class="t">${esc(p.end)}</div>
+    return `<div class="ponto${(es==='ok'||es==='ress')?'':' e-'+es}" data-id="${esc(p.id)}"><div class="t">${esc(p.end)}</div>
     <div class="s">Item ${esc(p.id)} · OS ${esc(p.os)} · ${esc(p.tipo)} · ${esc(p.fab)} · Estudo: ${esc(p.estudo)}${p.prio?' · Prioritário':''}</div>
-    <div class="chips">${tv?`<span class="chip c-trav">${esc(tv)}</span>`:`${r.venc?`<span class="chip c-venc">${r.venc} vencida${r.venc>1?'s':''}</span>`:''}${r.sem?`<span class="chip c-sem">${r.sem} sem data</span>`:''}${r.prev?`<span class="chip c-prev">${r.prev} prevista${r.prev>1?'s':''}</span>`:''}${r.trav?`<span class="chip c-trav">${r.trav} com situação do escritório</span>`:''}<span class="chip c-ok">${r.feitas}/${r.total} OK</span>`}</div>
+    <div class="chips">${es==='ress'?'<span class="chip c-ress">APROVADO COM RESSALVAS</span>':''}${tv?`<span class="chip c-trav">${esc(tv)}</span>`:`${r.venc?`<span class="chip c-venc">${r.venc} vencida${r.venc>1?'s':''}</span>`:''}${r.sem?`<span class="chip c-sem">${r.sem} sem data</span>`:''}${r.prev?`<span class="chip c-prev">${r.prev} prevista${r.prev>1?'s':''}</span>`:''}${r.trav?`<span class="chip c-trav">${r.trav} com situação do escritório</span>`:''}<span class="chip c-ok">${r.feitas}/${r.total} OK</span>`}</div>
     ${np?`<div class="pend">${np} lançamento${np>1?'s':''} enviado${np>1?'s':''} — entra na planilha na próxima atualização</div>`:''}
     <div class="barra"><i style="width:${Math.round(100*r.feitas/r.total)}%"></i></div>
-    ${es==='ok'?'':`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`}</div>`;
+    ${AVISO_ESTUDO[es]?`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`:''}</div>`;
   }).join('');
   el.querySelectorAll('.ponto').forEach(c=>c.onclick=()=>telaPonto(c.dataset.id));
 }
@@ -216,8 +225,8 @@ function telaPonto(id){
   <dl class="info"><dt>Item</dt><dd>${esc(p.id)} · OS ${esc(p.os)}</dd><dt>Município</dt><dd>${esc(p.mun)}</dd>
   <dt>Equipamento</dt><dd>${esc(p.tipo)} · ${esc(p.fab)} · ${esc(p.fx)} faixa(s) · ${esc(p.vel)} km/h</dd>
   <dt>Estudo técnico</dt><dd class="${es==='ok'?'':'estudo-'+es}">${esc(p.estudo)}</dd><dt>Ponto</dt><dd>${esc(p.novo)}${p.prio?' · prioritário':''}</dd>
-  ${p.prazo?`<dt class="prazo">Prazo final</dt><dd class="prazo">${br(p.prazo)}${p.sit?' · '+esc(p.sit):''}</dd>`:''}</dl>
-  ${es==='ok'?'':`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`}
+  ${(p.prazo||p.prazo_txt)?`<dt class="prazo">Prazo final</dt><dd class="prazo">${p.prazo?br(p.prazo):esc(p.prazo_txt)}${p.sit?' · '+esc(p.sit):''}</dd>`:''}</dl>
+  ${es==='ress'?'<div class="alerta-estudo e-ress">APROVADO COM RESSALVAS</div>':''}${AVISO_ESTUDO[es]?`<div class="alerta-estudo e-${es}">${AVISO_ESTUDO[es]}</div>`:''}
   ${livres.length>1?`<div class="modo"><button id="m1" class="${S.multi?'':'on'}">Uma etapa</button><button id="m2" class="${S.multi?'on':''}">Várias etapas de uma vez</button></div>`:''}</div>
   <main style="${S.multi?'padding-bottom:90px':''}">${tv?`<div class="aviso">Ponto com situação <b>${esc(tv)}</b> na planilha.</div>`:''}${html}</main>
   ${S.multi?`<div class="multi-bar"><button class="btn" id="mlanc" ${S.sel.size?'':'disabled'}>Lançar ${S.sel.size} etapa${S.sel.size===1?'':'s'}</button></div>`:''}`;
