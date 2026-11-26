@@ -118,6 +118,7 @@ function resumoPonto(p){
   let feitas=0,venc=0,sem=0,prev=0; const total=S.dados.etapas.filter(x=>x.tipo!=='serie').length;
   for(const e of S.dados.etapas.filter(x=>x.tipo!=='serie')){
     const ss=p.faixas.map(f=>estado(f.v[e.col]).c);
+    if(e.sem_previsao && ss.includes('sem')) continue; // Laudo: sem previsão; pendente, mas não entra em "Sem previsão"
     if(ss.includes('venc')) venc++; else if(ss.includes('sem')) sem++; else if(ss.includes('prev')) prev++; else feitas++;
   }
   return {feitas,total,venc,sem,prev};
@@ -190,10 +191,10 @@ function telaPonto(id){
   let grupo='', html='';
   for(const e of S.dados.etapas){
     if(e.grupo!==grupo){ grupo=e.grupo; html+=`<div class="grupo">${esc(grupo)}</div>`; }
-    const st = p.faixas.map(f=>({f:f.f, s:e.tipo==='serie'?((f.v[e.col]||[])[1]?{c:'ok',t:f.v[e.col][1]}:{c:'na',t:'Não informado'}):estado(f.v[e.col])}));
+    const st = p.faixas.map(f=>({f:f.f, s:e.tipo==='serie'?((f.v[e.col]||[])[1]?{c:'ok',t:f.v[e.col][1]}:{c:'na',t:'Não informado'}):(e.sem_previsao&&estado(f.v[e.col]).c==='sem'?{c:'sem',t:'Pendente'}:estado(f.v[e.col]))}));
     const iguais = st.every(x=>x.s.t===st[0].s.t);
     const pe = pend.filter(x=>x.etapa===e.col).slice(-1)[0];
-    const podeSel = S.multi && e.tipo!=='serie';
+    const podeSel = S.multi && e.tipo!=='serie' && !e.sem_previsao;
     if(S.multi && !podeSel) continue;
     html += `<div class="etapa${podeSel&&S.sel.has(e.col)?' sel':''}" data-col="${e.col}">${podeSel?'<span class="ck">✓</span>':''}<div style="flex:1"><div class="n">${esc(e.nome)}</div>
       ${iguais?'':`<div class="fx">${st.map(x=>`${esc(x.f)}: ${esc(x.s.t)}`).join(' · ')}</div>`}
@@ -229,8 +230,8 @@ function modalLanc(col){
   fundo.innerHTML = `<div class="modal" role="dialog" aria-label="Lançar ${esc(e.nome)}">
    <h3>${esc(e.nome)}</h3><div class="s">BR-${esc(p.br)} km ${esc(p.km)} · ${esc(p.cod||p.et)}</div>
    <div class="opcoes">
-     <label class="op"><input type="radio" name="tp" value="realizado" ${p.ni?'':'disabled'}> ${placa?'Instalada (OK)':'Realizado'}</label>
-     <label class="op"><input type="radio" name="tp" value="previsto" checked> Previsto para</label>
+     <label class="op"><input type="radio" name="tp" value="realizado" ${p.ni?'':'disabled'} ${e.sem_previsao?'checked':''}> ${e.sem_previsao?'Laudo emitido (OK)':(placa?'Instalada (OK)':'Realizado')}</label>
+     ${e.sem_previsao?(p.ni?'':'<div class="s">O laudo só pode ser lançado depois da NI.</div>'):'<label class="op"><input type="radio" name="tp" value="previsto" checked> Previsto para</label>'}
      ${e.aceita_traco?'<label class="op"><input type="radio" name="tp" value="na"> Não se aplica neste ponto ( - )</label>':''}
    </div>
    <div id="bxData"><label for="dt">Data</label><input id="dt" type="date" class="campo"></div>
@@ -240,7 +241,8 @@ function modalLanc(col){
    <button class="btn" id="env">Enviar</button><button class="btn sec" id="canc">Cancelar</button></div>`;
   document.body.appendChild(fundo);
   const $=s=>fundo.querySelector(s);
-  const ajusta=()=>{const tp=fundo.querySelector('input[name=tp]:checked').value; const dt=$('#dt');
+  if(e.sem_previsao && !p.ni){ fundo.querySelector('#env').disabled=true; }
+  const ajusta=()=>{const ck=fundo.querySelector('input[name=tp]:checked'); if(!ck){$('#bxData').style.display='none';return;} const tp=ck.value; const dt=$('#dt');
     $('#bxData').style.display = (tp==='na' || (tp==='realizado' && placa)) ? 'none':'block';
     if(tp==='realizado'){dt.max=hoje;dt.min='';if(!dt.value||dt.value>hoje)dt.value=hoje;}
     if(tp==='previsto'){const a=new Date();a.setDate(a.getDate()+1);const amanha=a.toISOString().slice(0,10);dt.min=amanha;dt.max='';if(!dt.value||dt.value<=hoje)dt.value='';}};
